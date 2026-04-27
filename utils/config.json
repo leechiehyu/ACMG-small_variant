@@ -1,0 +1,27 @@
+{
+  "paths_notes": "Setting input path in bash file.",
+  "acmg_params": {
+    "AD_AF": null,
+    "AR_AF": null,
+    "PVS1_LOEUF": null,
+    "PP3_CADD_SUP": null,
+    "PP3_CADD_MOD": null,
+    "BP4_CADD_SUP": null,
+    "BP4_CADD_MOD": null,
+    "BP4_CADD_STR": null,
+    "PP3_DANN": null,
+    "BP4_DANN_SUP": null,
+    "BP4_DANN_MOD": null,
+    "BP4_DANN_STR": null,
+    "P_SPLICEAI": null,
+    "B_SPLICEAI": null
+  },
+  "database_path": {
+    "LOF_GENELIST": "/staging/biology/r12455009/test_vep/small_variant/DB/LoF_genelist_vClinVar20251109.txt",
+    "MOI": "/staging/biology/r12455009/test_vep/small_variant/DB/Inheritance_20231219.260224_clean_hgnc.txt",
+    "GOF": "/staging/biology/r12455009/test_vep/small_variant/DB/hg38_GOF_202103.tsv",
+    "P_HOTSPOT_SELECT": "/staging/biology/r12455009/test_vep/small_variant/DB/hg38_pathogenicDB_Region_vClinVar20251109.select.tsv",
+    "P_HOTSPOT_CLINICAL": "/staging/biology/r12455009/test_vep/small_variant/DB/hg38_pathogenicDB_Region_vClinVar20251109.clinical.tsv",
+    "VAR_EXP": "/staging/biology/r12455009/test_vep/small_variant/DB/hg38_pathogenicDB_Variant_Exception_vClinVar20251109_DVDv9.2.tsv"
+  }
+}

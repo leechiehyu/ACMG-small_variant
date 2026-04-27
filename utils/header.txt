@@ -1,0 +1,8 @@
+##INFO=<ID=LoF_gene,Number=.,Type=String,Description="LoF_gene">
+##INFO=<ID=Inheritance,Number=.,Type=String,Description="Inheritance">
+##INFO=<ID=MOI_description,Number=.,Type=String,Description="MOI_description">
+##INFO=<ID=MOI_source,Number=.,Type=String,Description="MOI_source">
+##INFO=<ID=ClinVar_GOF,Number=.,Type=String,Description="ClinVar_GOF">
+##INFO=<ID=HGMD_GOF,Number=.,Type=String,Description="HGMD_GOF">
+##INFO=<ID=Pathogenicity_class,Number=.,Type=String,Description="Pathogenicity_class">
+##INFO=<ID=ACMG_rules,Number=.,Type=String,Description="ACMG_rules">
