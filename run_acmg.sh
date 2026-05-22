@@ -7,16 +7,17 @@
 #SBATCH --mail-user=
 #SBATCH --mail-type=FAIL,END
 
-# log file print info setting
-source /staging/biology/r12455009/test_vep/small_variant/VEP_script/utils/job_utils.sh
-set -euo pipefail
-
 WKDIR=$PWD
 LOGDIR=$WKDIR/logs
 OUTDIR=$WKDIR/ACMG_output
 
 mkdir -p $LOGDIR
 mkdir -p $OUTDIR
+
+# log file print info setting
+source $WKDIR/utils/job_utils.sh
+set -euo pipefail
+
 
 # Arguments
 FILE=("$@")
