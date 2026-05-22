@@ -156,82 +156,6 @@ def step2_apply_disables(lf: pl.LazyFrame) -> pl.LazyFrame:
     return lf.with_columns(expressions)
 
 
-##### RULE-BASED #####
-def step3_temp_rule_based(lf: pl.LazyFrame) -> pl.LazyFrame:
-    """
-    Temporary rule-based classification based on the presence of specific ACMG rules
-    This is a placeholder for the final point-based system
-    """
-    pvs = ["PVS1", "PP5_VERYSTRONG"]
-    ps = ["PVS1_STRONG", "PS1", "PS3"]
-    pm = ["PM1", "PM2", "PM4", "PM5", "PP3_MODERATE", "PP5_MODERATE"]
-    pp = ["PP3", "PP5"]
-    ba = ["BA1", "BP6_VERYSTRONG"]
-    bs = ["BS1", "BS2", "BP4_STRONG", "BP6_STRONG"]
-    bp = ["BP3", "BP4", "BP4_MODERATE", "BP6", "BP7"]
-
-    lf = lf.with_columns([
-        pl.sum_horizontal(pvs).cast(pl.Int32).alias("n_pvs"),
-        pl.sum_horizontal(ps).cast(pl.Int32).alias("n_ps"),
-        pl.sum_horizontal(pm).cast(pl.Int32).alias("n_pm"),
-        pl.sum_horizontal(pp).cast(pl.Int32).alias("n_pp"),
-        pl.sum_horizontal(ba).cast(pl.Int32).alias("n_ba"),
-        pl.sum_horizontal(bs).cast(pl.Int32).alias("n_bs"),
-        pl.sum_horizontal(bp).cast(pl.Int32).alias("n_bp"),
-    ])
-
-    is_pathogenic = (
-        (pl.col("n_pvs") >= 2) |
-        # (i) 1 Very strong AND (1S or 2M or 1M+1P or 2P)
-        ((pl.col("n_pvs") == 1) & (
-            (pl.col("n_ps") >= 1) | 
-            (pl.col("n_pm") >= 2) | 
-            ((pl.col("n_pm") == 1) & (pl.col("n_pp") == 1)) | 
-            (pl.col("n_pp") >= 2)
-        )) |
-        # (ii) >=2 Strong
-        (pl.col("n_ps") >= 2) |
-        # (iii) 1 Strong AND (3M or 2M+2P or 1M+4P)
-        ((pl.col("n_ps") == 1) & (
-            (pl.col("n_pm") >= 3) | 
-            ((pl.col("n_pm") == 2) & (pl.col("n_pp") >= 2)) | 
-            ((pl.col("n_pm") == 1) & (pl.col("n_pp") >= 4))
-        ))
-    )
-
-    is_likely_pathogenic = (
-        ((pl.col("n_pvs") == 1) & (pl.col("n_pm") == 1)) |
-        ((pl.col("n_ps") == 1) & (
-            (pl.col("n_pm") >= 1) |
-            (pl.col("n_pp") >= 2)
-        )) |
-        (pl.col("n_pm") >= 3) |
-        ((pl.col("n_pm") == 2) & (pl.col("n_pp") >= 2)) |
-        ((pl.col("n_pm") == 1) & (pl.col("n_pp") >= 4))
-    )
-
-    is_benign = (
-        (pl.col("n_ba") >= 1) | 
-        (pl.col("n_bs") >= 2)
-    )
-
-    is_likely_benign = (
-        ((pl.col("n_bs") == 1) & (pl.col("n_bp") == 1)) |
-        (pl.col("n_bp") >= 2)
-    )
-
-    return lf.with_columns(
-        pl.when(is_benign & is_pathogenic)
-          .then(pl.lit("Uncertain significance (Contradictory)"))
-        .when(is_pathogenic).then(pl.lit("Pathogenic"))
-        .when(is_likely_pathogenic).then(pl.lit("Likely pathogenic"))
-        .when(is_benign).then(pl.lit("Benign"))
-        .when(is_likely_benign).then(pl.lit("Likely benign"))
-        .otherwise(pl.lit("Uncertain significance"))
-        .alias("ACMG_Classification")
-    )
-
-
 ##### POINT-BASED #####
 def step3_scoring(lf: pl.LazyFrame) -> pl.LazyFrame:
     """
@@ -277,10 +201,12 @@ def run_acmg_pipeline(lf: pl.LazyFrame, **user_config) -> pl.LazyFrame:
     ACMG classification pipeline
     Aggregates all steps: raw label calculation, conflict resolution, scoring and final classification
     """
+    input_cols = lf.collect_schema().names()
+
     return (
         lf.pipe(step1_calculate_raw_labels, **user_config)
           .pipe(step2_apply_disables)
           .pipe(step3_scoring)
-        #   .pipe(step3_temp_rule_based)
+          .select(input_cols + ["Pathogenicity_class", "ACMG_rules"])
     )
 

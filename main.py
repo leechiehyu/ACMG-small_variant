@@ -8,15 +8,14 @@ from modules.data_loader import prepare_full_data
 from modules.aggregation import run_acmg_pipeline
 
 
-OUTPUT_COLUMNS = [
-    # --- Variant coordinates ---
-    "CHROM", "POS", "REF", "ALT",
-    # --- Gene / transcript ---
-    "LoF_gene", "Inheritance", "MOI_description", "MOI_source", "ClinVar_GOF", "HGMD_GOF",
-    # --- ACMG result ---
-    "Pathogenicity_class", "ACMG_rules",
-]
-
+tmp_cols = [
+    # --- intermediate columns ---
+    "_tmp_aa_change", "chrom_rank", "original_order", "_raw_CHROM",
+    # --- annotation columns ---
+    "Allele", "CLN_VEP", "CLN_VEP_Nstar", "CLN_VEP_GENE_NAMES", "CLN_VEP_SYMBOL", "CLN_VEP_Ensembl_nuc", "CLN_VEP_Pchange", 
+    "CLN_VEP_Consequence", "CLN_VEP_Feature", "CLN_VEP_AAchange", "CLN_VEP_Protein_position",
+    "LoF_gene", "patho_count", "Variant", "Exception", 
+    ]
 
 def parse_args():
     """
@@ -89,15 +88,22 @@ def main():
     try:
         logging.info("Constructing ACMG pipeline...")
 
-        # tmp_cols = ["_tmp_aa_change", "chrom_rank", "original_order", "_raw_CHROM"]
-        # schema_names = set(lf.collect_schema().names())
+        schema_names = set(lf.collect_schema().names())
 
         final_lf = (
             run_acmg_pipeline(lf, **config.get("acmg_params", {}))
             .sort("original_order")
             .with_columns(pl.col("_raw_CHROM").alias("CHROM"))  # restore original CHROM
-            # .drop([c for c in tmp_cols if c in schema_names])
-            .select(OUTPUT_COLUMNS)
+            .drop([c for c in tmp_cols if c in schema_names])
+            .select([
+                pl.col("CHROM"),
+                pl.col("POS"),
+                pl.col("REF"),
+                pl.col("ALT"),
+                pl.col("Pathogenicity_class"),
+                pl.col("ACMG_rules"),
+                pl.all().exclude(["CHROM", "POS", "REF", "ALT", "Pathogenicity_class", "ACMG_rules"])
+            ])
         )
         
         logging.info("Pipeline constructed successfully.")
@@ -108,7 +114,7 @@ def main():
 
     # 5. Write output
     try:
-        logging.info(f"Saving pipeline temporary results to: {args.output}")
+        logging.info(f"Saving pipeline results to: {args.output}")
 
         final_lf.sink_csv(args.output, separator="\t", null_value=".")
 

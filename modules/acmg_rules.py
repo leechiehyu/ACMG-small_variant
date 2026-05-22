@@ -146,9 +146,9 @@ def _pvs1_nmd_escaping():
 def check_pvs1(pvs1_loeuf_cutoff: float = 0.755):
     return (
         _pvs1_lof_csq() & 
-        _pvs1_loeuf(pvs1_loeuf_cutoff) & 
-        _pvs1_lof_gene()
-        # (_pvs1_loeuf(pvs1_loeuf_cutoff) | _pvs1_lof_gene())
+        # _pvs1_loeuf(pvs1_loeuf_cutoff) & 
+        # _pvs1_lof_gene()
+        (_pvs1_loeuf(pvs1_loeuf_cutoff) | _pvs1_lof_gene())
     ).fill_null(False)
 
 def check_pvs1_strong(pvs1_loeuf_cutoff: float = 0.755):

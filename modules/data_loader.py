@@ -148,10 +148,10 @@ def _join_by_id_then_symbol(
     """
     lf = input_lf.join(
         db.select(["HGNC_ID"] + cols).rename({c: f"{c}_by_id" for c in cols}),
-        on="HGNC_ID", how="left",
+        on = "HGNC_ID", how = "left",
     ).join(
         db.select(["SYMBOL"] + cols).rename({c: f"{c}_by_sym" for c in cols}),
-        on="SYMBOL", how="left",
+        on = "SYMBOL", how = "left",
     )
  
     tmp_cols = [f"{c}_by_id" for c in cols] + [f"{c}_by_sym" for c in cols]
@@ -219,8 +219,8 @@ def attach_lof_gene_info(input_lf: pl.LazyFrame, lof_genelist_path: str) -> pl.L
     lof_db = (
         _scan_tsv(
             lof_genelist_path, 
-            schema = {"SYMBOL": pl.String, "HGNC_ID": pl.String},
-            truncate_ragged_lines=True,
+            schema = lof_schema,
+            truncate_ragged_lines = True,
         )
         .select([
             pl.col("SYMBOL"),
@@ -232,8 +232,8 @@ def attach_lof_gene_info(input_lf: pl.LazyFrame, lof_genelist_path: str) -> pl.L
     return (
         _join_by_id_then_symbol(
             input_lf, lof_db,
-            cols=["is_lof"],
-            rename={"is_lof": "LoF_gene"},
+            cols = ["is_lof"],
+            rename = {"is_lof": "LoF_gene"},
         )
         .with_columns(pl.col("LoF_gene").fill_null(False))
     )
@@ -256,8 +256,8 @@ def attach_moi_info(input_lf: pl.LazyFrame, moi_db_path: str) -> pl.LazyFrame:
     moi_db = (
         _scan_tsv(
             moi_db_path, 
-            schema=moi_schema, 
-            truncate_ragged_lines=True
+            schema = moi_schema, 
+            truncate_ragged_lines = True
         )
         .with_columns(
             pl.col("description").str.replace_all(";", "|")
@@ -276,8 +276,8 @@ def attach_moi_info(input_lf: pl.LazyFrame, moi_db_path: str) -> pl.LazyFrame:
     return (
         _join_by_id_then_symbol(
             input_lf, moi_db, 
-            cols=carry_cols, 
-            rename=rename_cols)
+            cols = carry_cols, 
+            rename = rename_cols)
     )
 
 
@@ -306,7 +306,7 @@ def attach_gof_info(input_lf: pl.LazyFrame, gof_db_path: str) -> pl.LazyFrame:
         )
     )
 
-    return input_lf.join(gof_db, on=["CHROM", "POS", "REF", "ALT"], how="left")
+    return input_lf.join(gof_db, on = ["CHROM", "POS", "REF", "ALT"], how = "left")
 
 
 def attach_pathogenic_hotspot(input_lf: pl.LazyFrame, hotspot_path: str) -> pl.LazyFrame:
@@ -380,7 +380,7 @@ def attach_pathogenic_hotspot(input_lf: pl.LazyFrame, hotspot_path: str) -> pl.L
 
     # join result to the original input df
     return (
-        input_lf.join(density_df, on=["CHROM", "POS"], how="left")
+        input_lf.join(density_df, on = ["CHROM", "POS"], how = "left")
         .with_columns(
             pl.when(
                 (pl.col("Consequence").str.contains(csq_pattern)) & 
@@ -418,7 +418,7 @@ def attach_pathogenicDB_variant_exception(input_lf: pl.LazyFrame, variant_path: 
         .unique(subset=["CHROM", "POS", "REF", "ALT"])
     )
 
-    return input_lf.join(patho_db, on=["CHROM", "POS", "REF", "ALT"], how="left")
+    return input_lf.join(patho_db, on = ["CHROM", "POS", "REF", "ALT"], how = "left")
 
 
 

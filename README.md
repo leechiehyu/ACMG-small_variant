@@ -8,7 +8,7 @@ This repository automates small variant classification according to ACMG guideli
 Use the `environment.yml` file to install validated dependencies, including `polars`.
 
 ```bash
-ml Anaconda/Anaconda3
+ml biology Anaconda/Anaconda3
 conda env create -f environment.yml
 ```
 
@@ -84,8 +84,8 @@ For example, to override allele frequency settings:
 All results will be saved in `ACMG_output`.
 
 ### Result files
-- `{sample}.vep.ACMG.vcf.gz`, `{sample}.vep.ACMG.vcf.gz.tbi`: Complete VCF with ACMG tags in the INFO field.
-- `{sample}.vep.mane_plus_clinical.ACMG.vcf.gz`, `{sample}.vep.mane_plus_clinical.ACMG.vcf.gz.tbi`: Only variants located in MANE Plus Clinical transcripts were included, ACMG tags were added to the INFO field of VCF.
+- `{sample}.vep.ACMG.tsv`: VEP annotated TSV with pathogenic classfication and ACMG rules.
+- `{sample}.vep.mane_plus_clinical.ACMG.tsv`: Only variants located in 65 MANE Plus Clinical transcripts were included, pathogenic classfication and ACMG rules were added to the annotated TSV.
 
 ### Key Output Columns
 | Column | Description |
@@ -93,30 +93,6 @@ All results will be saved in `ACMG_output`.
 | Pathogenicity_class | Final classification (e.g., Pathogenic, Likely_pathogenic, Uncertain_significance, Likely_benign, Benign). |
 | ACMG_rules | A list of criteria met by the variant (e.g., PVS1,PM2,PP3). |
 
-### Format Conversion (VCF to TSV)
-Use this script to convert VCF files to TSV for easier filtering and readability. 
-For more details on using the script, see the [bcftools plugin split-vep](https://samtools.github.io/bcftools/howtos/plugin.split-vep.html).
-
-```bash
-ml biology BCFtools/1.18
-
-cd /path/to/ACMG_output/
-bcftools +split-vep -H \
-    -f '%CHROM\t%POS\t%REF\t%ALT\t%Pathogenicity_class\t%ACMG_rules\t%CSQ\n' \
-    -A tab {sample}.vep.ACMG.vcf.gz | \
-    sed -E '1s/\[[0-9]+\]//g' | sed 's/\#//' > {sample}.vep.ACMG.tsv
-```
-
-Append additional or specific columns to the `-f` string using the `%COLUMN_NAME` format to modify `%CSQ` output. Ensure columns are separated by `\t` for tab-delimited formatting.
-
-For example:
-
-```bash
-bcftools +split-vep -H \
-    -f '%CHROM\t%POS\t%REF\t%ALT\t%Pathogenicity_class\t%ACMG_rules\t%SYMBOL\t%HGNC_ID\t%Consequence\t%Feature\t%HGVSp\t%MANE\t%ClinVar_ALLELEID\t%ClinVar_CLNSIG\t%ClinVar_CLNSIGCONF\t%ClinVar_CLNREVSTAT\t%ClinVar_NumberSubmitters\t%ClinVar_NAME\t%TWB1490_SNV_AF\t%TWB_official_SNV_AF\t%gnomAD_exome_FILTER\t%gnomAD_exome_AF\t%gnomAD_exome_AF_eas\t%gnomAD_exome_nhomalt\t%gnomAD_exome_nhomalt_eas\t%gnomAD_genome_FILTER\t%gnomAD_genome_AF\t%gnomAD_genome_AF_eas\t%gnomAD_genome_nhomalt\t%gnomAD_genome_nhomalt_eas\t%RepeatMasker\n' \
-    {sample}.vep.ACMG.vcf.gz | \
-    sed -E '1s/\[[0-9]+\]//g' | sed 's/\#//' > {sample}.vep.ACMG.tsv
-```
 
 ## Databases for pathogenicity evaluation
 Detailed versions and descriptions for all databases can be found in the VEP annotation result documentations.
