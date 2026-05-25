@@ -51,16 +51,16 @@ Set a parameter to `null` to use predefined values.
 | --- | ---: | --- |
 | AD_AF | 0.00001441287 | Allele frequency threshold for AD, XL, YL, or unspecified inheritance modes |
 | AR_AF | 0.0001 | Allele frequency threshold for AR | 
-| PVS1_LOEUF | 0.755 | follow [varsome](https://varsome.com/about/resources/germline-implementation/#pvs1) |
-| PP3_CADD_SUP | 25.3 | follow [ClinGen guideline](https://pmc.ncbi.nlm.nih.gov/articles/PMC9748256/pdf/main.pdf) |
-| PP3_CADD_MOD | 28.1 | follow [ClinGen guideline](https://pmc.ncbi.nlm.nih.gov/articles/PMC9748256/pdf/main.pdf) |
-| BP4_CADD_SUP | 22.7 | follow [ClinGen guideline](https://pmc.ncbi.nlm.nih.gov/articles/PMC9748256/pdf/main.pdf) |
-| BP4_CADD_MOD | 17.3 | follow [ClinGen guideline](https://pmc.ncbi.nlm.nih.gov/articles/PMC9748256/pdf/main.pdf) |
-| BP4_CADD_STR | 0.15 | follow [ClinGen guideline](https://pmc.ncbi.nlm.nih.gov/articles/PMC9748256/pdf/main.pdf) |
-| PP3_DANN | 0.999 | follow [varsome](https://varsome.com/about/resources/germline-implementation/#insilicopredictions) |
-| BP4_DANN_SUP | 0.974 | follow [varsome](https://varsome.com/about/resources/germline-implementation/#insilicopredictions) |
-| BP4_DANN_MOD | 0.915 | follow [varsome](https://varsome.com/about/resources/germline-implementation/#insilicopredictions) |
-| BP4_DANN_STR | 0.478 | follow [varsome](https://varsome.com/about/resources/germline-implementation/#insilicopredictions) |
+| PVS1_LOEUF | 0.755 | LOEUF score <br/> follow [varsome](https://varsome.com/about/resources/germline-implementation/#pvs1) |
+| PP3_CADD_SUP | 25.3 | PP3 CADD cutoff <br/> follow [ClinGen guideline](https://pmc.ncbi.nlm.nih.gov/articles/PMC9748256/pdf/main.pdf) |
+| PP3_CADD_MOD | 28.1 | PP3 moderate CADD cutoff <br/> follow [ClinGen guideline](https://pmc.ncbi.nlm.nih.gov/articles/PMC9748256/pdf/main.pdf) |
+| BP4_CADD_SUP | 22.7 | BP4 CADD cutoff <br/> follow [ClinGen guideline](https://pmc.ncbi.nlm.nih.gov/articles/PMC9748256/pdf/main.pdf) |
+| BP4_CADD_MOD | 17.3 | BP4 moderate CADD cutoff <br/> follow [ClinGen guideline](https://pmc.ncbi.nlm.nih.gov/articles/PMC9748256/pdf/main.pdf) |
+| BP4_CADD_STR | 0.15 | BP4 strong CADD cutoff <br/> follow [ClinGen guideline](https://pmc.ncbi.nlm.nih.gov/articles/PMC9748256/pdf/main.pdf) |
+| PP3_DANN | 0.999 | PP3 DANN cutoff <br/> follow [varsome](https://varsome.com/about/resources/germline-implementation/#insilicopredictions) |
+| BP4_DANN_SUP | 0.974 | BP4 DANN cutoff <br/> follow [varsome](https://varsome.com/about/resources/germline-implementation/#insilicopredictions) |
+| BP4_DANN_MOD | 0.915 | BP4 moderate DANN cutoff <br/> follow [varsome](https://varsome.com/about/resources/germline-implementation/#insilicopredictions) |
+| BP4_DANN_STR | 0.478 | BP4 strong DANN cutoff <br/> follow [varsome](https://varsome.com/about/resources/germline-implementation/#insilicopredictions) |
 | P_SPLICEAI | 0.2 | SpliceAI prediction score threshold for pathogenic |
 | B_SPLICEAI | 0.1 | SpliceAI prediction score threshold for benign |
 
@@ -111,22 +111,3 @@ Key sources used for ACMG scoring include:
 - SpliceAI indel, version 1.3
 - MitoMap, version 20230621
 
-
-## Rules
-### Implemented rule notes
-#### PS3
-We only apply the PS3 criterion to GoF variants, as these are more likely to be overlooked by in silico prediction tools.
-
-### Unimplemented rules
-- PS2
-- PS4
-- PM3
-- PM6
-- PP1
-- PP2
-- PP4
-- BS3
-- BS4
-- BP1
-- BP2
-- BP5
