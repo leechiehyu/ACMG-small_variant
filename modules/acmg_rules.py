@@ -1,6 +1,7 @@
 # Define all criteria of ACMG rules
 import operator
 import polars as pl
+from typing import Literal
 
 # ================================= #
 # =========== Constants =========== #
@@ -23,6 +24,23 @@ SPLICE_AI_COLS = [
 ### For _moi_ad()
 INHERITANCE_AD = ["AD", "XL", "YL"]
 
+### For PP5, BP6
+_CLNSIG_MAP = {
+    "PLP": "Pathogenic|Likely_pathogenic",
+    "BLB": "Benign|Likely_benign",
+}
+
+CLN_01STAR = [
+    "no_assertion_criteria_provided", 
+    "criteria_provided&_single_submitter", 
+]
+CLN_2STAR = [
+    "criteria_provided&_multiple_submitters&_no_conflicts",
+]
+CLN_34STAR = [
+    "reviewed_by_expert_panel", 
+    "practice_guideline"
+]
 
 
 # ================================= #
@@ -117,6 +135,17 @@ def _spliceAI_all(cutoff: float):
     """ SpliceAI every DS <= cutoff """
     return pl.all_horizontal(pl.col(c).fill_null(1) <= cutoff for c in SPLICE_AI_COLS)
 
+# --------------------- #
+# ClinVar review status #
+# --------------------- #
+### For PP5, BP6
+def _clinvar_clnsig(status: Literal["PLP", "BLB"]):
+    """ ClinVar significance """
+    return pl.col("ClinVar_CLNSIG").str.contains(_CLNSIG_MAP[status]).fill_null(False)
+
+def _clnrevstat(revstat: list[str]):
+    """ ClinVar review status check """
+    return pl.col("ClinVar_CLNREVSTAT").is_in(revstat).fill_null(False)
 
 
 # ================================= #
@@ -357,67 +386,71 @@ def check_pp3_moderate(
 ############ PP5 ############
 #############################
 # --- PP5 sub rules --- #
-def _pp5_clinvar_clnsig():
-    """ ClinVar pathogenic/likely_pathogenic """
-    return pl.col("ClinVar_CLNSIG").str.contains("Pathogenic|Likely_pathogenic").fill_null(False)
-
-def _pp5_clinvar_clnrevstat():
-    """ ClinVar review status """
-    PP5_STATUSES = [
-        "no_assertion_criteria_provided", 
-        "criteria_provided&_single_submitter", 
-        "criteria_provided&_multiple_submitters&_no_conflicts", 
-        "reviewed_by_expert_panel", 
-        "practice_guideline"
-    ]
-    return pl.col("ClinVar_CLNREVSTAT").is_in(PP5_STATUSES).fill_null(False)
-
-def _pp5_supporting():
-    """ By ClinVar PLP 0 or 1 star """
-    PLP_01_STAR = [
-        "ClinVar_P0", 
-        "ClinVar_P1"
-    ]
-    return pl.col("Variant").is_in(PLP_01_STAR).fill_null(False)
-
-def _pp5_verystrong():
-    """ By clinvar PLP 3 or 4 star, DVD, MitoMap """
-    PLP_34_STAR = [
-        "ClinVar_P3", 
-        "ClinVar_P4",
-        "DeafnessVD",
-        "MitoMap"
-    ]
-    return pl.col("Variant").is_in(PLP_34_STAR).fill_null(False)
-
 def _pp5_dvd():
-    """ DeafnessVD CLNSIG P/LP """
+    """ DeafnessVD P/LP """
     return pl.col("DVD_SNV_Variant_Classification").str.contains("Pathogenic|Likely_pathogenic").fill_null(False)
+
+def _pp5_mitomap(status: str):
+    """ MitoMap disease """
+    if status == "Reported":
+        return (
+            pl.col("MitoMap_DiseaseStatus").str.contains("Reported") & 
+            ~pl.col("MitoMap_DiseaseStatus").str.contains("(?i)benign")
+        ).fill_null(False)
+
+    else:
+        return pl.col("MitoMap_DiseaseStatus").str.contains(status).fill_null(False)
 
 # --- PP5 main rule --- #
 def check_pp5():
     """
-    ClinVar P/LP with 0-1 star review status
+    ClinVar P/LP with 0-1 star review status or
+    MitoMap Reported
     """
     return (
-        _pp5_clinvar_clnsig() & 
-        _pp5_clinvar_clnrevstat() & 
-        _pp5_supporting()
+        (
+            _clinvar_clnsig("PLP") & _clnrevstat(CLN_01STAR) & 
+            ~_pp5_dvd()
+        ) | 
+        _pp5_mitomap("Reported")
     ).fill_null(False)
 
 def check_pp5_moderate():
     """
     ClinVar P/LP with 2 star review status
     """
-    return pl.col("Variant").fill_null("") == "ClinVar_P2"
+    return (
+        _clinvar_clnsig("PLP") & _clnrevstat(CLN_2STAR) & 
+        ~_pp5_dvd()
+    ).fill_null(False)
+
+def check_pp5_strong():
+    """
+    DVD P/LP or 
+    MitoMap Cfrm or 
+    ClinVar DVD conflict (ClinVar B/LB with 0~2 star and DVD P/LP)
+    """
+    cln_star = _clnrevstat(CLN_01STAR) | _clnrevstat(CLN_2STAR)
+
+    return (
+        _pp5_dvd() |
+        _pp5_mitomap("Cfrm") |
+        (_clinvar_clnsig("BLB") & cln_star & _pp5_dvd())
+    ).fill_null(False)
 
 def check_pp5_verystrong():
     """
-    ClinVar P/LP 3-4 star, DeafnessVD, or MitoMap
+    ClinVar P/LP 3-4 star or
+    ClinVar P/LP with any star and DVD P/LP
     """
+    all_star = _clnrevstat(CLN_01STAR) | _clnrevstat(CLN_2STAR) | _clnrevstat(CLN_34STAR)
+
     return (
-        _pp5_verystrong() |
-        _pp5_dvd()
+        (
+            _clinvar_clnsig("PLP") & _clnrevstat(CLN_2STAR) & 
+            ~_pp5_dvd()
+        ) |
+        (_clinvar_clnsig("PLP") & all_star & _pp5_dvd())
     ).fill_null(False)
 
 
@@ -550,53 +583,40 @@ def check_bp4_strong(
 #############################
 ############ BP6 ############
 #############################
-# --- BP6 sub rules --- #
-def _bp6_clinvar_clinsig():
-    """ ClinVar benign/likely_benign """
-    return pl.col("ClinVar_CLNSIG").str.contains("Benign|Likely_benign").fill_null(False)
-
-def _bp6_clinvar_clnrevstat():
-    """ ClinVar review status """
-    BP6_STATUSES = [
-        "no_assertion_criteria_provided", 
-        "criteria_provided&_single_submitter"
-    ]
-    return pl.col("ClinVar_CLNREVSTAT").is_in(BP6_STATUSES).fill_null(False)
-
-def _bp6_supporting():
-    """ By ClinVar BLB 0 or 1 star """
-    BLB_01_STAR = [
-        "ClinVar_B0", 
-        "ClinVar_B1"
-    ]
-    return pl.col("Variant").is_in(BLB_01_STAR).fill_null(False)
-
 # --- BP6 main rule --- #
 def check_bp6():
     """
     ClinVar B/LB with 0-1 star review status
     """
     return (
-        _bp6_clinvar_clinsig() & 
-        _bp6_clinvar_clnrevstat() & 
-        _bp6_supporting()
+        _clinvar_clnsig("BLB") & _clnrevstat(CLN_01STAR) & 
+        ~_pp5_dvd()
     ).fill_null(False)
 
 def check_bp6_strong():
     """
-    ClinVar B/LB with 2 star review status
+    ClinVar B/LB with 2 star review status or
+    ClinVar DVD conflict (ClinVar B/LB with 3~4 star and DVD P/LP)
     """
-    return pl.col("Variant").fill_null("") == "ClinVar_B2"
+    return (
+        (
+            _clinvar_clnsig("BLB") & _clnrevstat(CLN_2STAR) & 
+            ~_pp5_dvd()
+        ) |
+        (
+            _clinvar_clnsig("BLB") & _clnrevstat(CLN_34STAR) & 
+            _pp5_dvd()
+        )
+    ).fill_null(False)
 
 def check_bp6_verystrong():
     """
     ClinVar B/LB with 3-4 star review status
     """
-    BLB_34_STAR = [
-        "ClinVar_B3", 
-        "ClinVar_B4"
-    ]
-    return pl.col("Variant").is_in(BLB_34_STAR).fill_null(False)
+    return (
+        _clinvar_clnsig("BLB") & _clnrevstat(CLN_34STAR) & 
+        ~_pp5_dvd()
+    ).fill_null(False)
 
 
 #############################

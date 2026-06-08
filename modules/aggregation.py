@@ -49,7 +49,7 @@ P_WEIGHT_FAMILIES = {
     "PM4_grp": {"PM4": 2},
     "PM5_grp": {"PM5": 2},
     "PP3_grp": {"PP3": 1, "PP3_MODERATE": 2},
-    "PP5_grp": {"PP5": 1, "PP5_MODERATE": 2, "PP5_VERYSTRONG": 8},
+    "PP5_grp": {"PP5": 1, "PP5_MODERATE": 2, "PP5_STRONG": 4, "PP5_VERYSTRONG": 8},
 }
 
 B_WEIGHT_FAMILIES = {

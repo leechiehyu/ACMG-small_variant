@@ -14,7 +14,7 @@ tmp_cols = [
     # --- annotation columns ---
     "Allele", "CLN_VEP", "CLN_VEP_Nstar", "CLN_VEP_GENE_NAMES", "CLN_VEP_SYMBOL", "CLN_VEP_Ensembl_nuc", "CLN_VEP_Pchange", 
     "CLN_VEP_Consequence", "CLN_VEP_Feature", "CLN_VEP_AAchange", "CLN_VEP_Protein_position",
-    "LoF_gene", "patho_count", "Variant", "Exception", 
+    "LoF_gene", "patho_count", "Exception", 
     ]
 
 def parse_args():

@@ -393,19 +393,18 @@ def attach_pathogenic_hotspot(input_lf: pl.LazyFrame, hotspot_path: str) -> pl.L
     )
 
 
-def attach_pathogenicDB_variant_exception(input_lf: pl.LazyFrame, variant_path: str) -> pl.LazyFrame:
+def attach_pathogenicDB_ba1_exception(input_lf: pl.LazyFrame, variant_path: str) -> pl.LazyFrame:
     """
     Join pathogenicDB on CHROM/POS/REF/ALT; 
-    adds `Variant`, `Exception`
-    Rule(s): PP5, BA1, BP6
+    adds `Exception`
+    Rule(s): BA1
     """
     patho_schema = {
         "CHROM": pl.String,
         "POS": pl.Int32,
         "REF": pl.String,
         "ALT": pl.String,
-        "Variant": pl.String,
-        "Exception": pl.String
+        "Exception": pl.String,
     }
 
     patho_db = (
@@ -447,6 +446,6 @@ def prepare_full_data(
         .pipe(attach_gof_info, gof_db_path = gof_db_path)
         # attach pathogenic hotspot info
         .pipe(attach_pathogenic_hotspot, hotspot_path = hotspot_path)
-        # attach pathogenicDB variant exception info
-        .pipe(attach_pathogenicDB_variant_exception, variant_path = variant_path)
+        # attach pathogenicDB ba1 exception variants
+        .pipe(attach_pathogenicDB_ba1_exception, variant_path = variant_path)
     )

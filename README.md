@@ -111,7 +111,7 @@ Key sources used for ACMG scoring include:
 - SpliceAI indel, version 1.3
 - MitoMap, version 20230621
 
-
+<!--
 ## Rules
 ### Implemented rule notes
 #### PS3
@@ -130,3 +130,4 @@ We only apply the PS3 criterion to GoF variants, as these are more likely to be 
 - BP1
 - BP2
 - BP5
+--->

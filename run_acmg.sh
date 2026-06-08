@@ -33,8 +33,6 @@ logfile=${LOGDIR}/${TIME}_ACMG_${SAMPLE_ID}.log
 # call function from job_utils.sh to initialize log file
 start_job
 
-module load biology
-module load BCFtools/1.18
 module load Anaconda/Anaconda3
 conda activate acmg_rule
 
