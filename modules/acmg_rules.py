@@ -447,7 +447,7 @@ def check_pp5_verystrong():
 
     return (
         (
-            _clinvar_clnsig("PLP") & _clnrevstat(CLN_2STAR) & 
+            _clinvar_clnsig("PLP") & _clnrevstat(CLN_34STAR) & 
             ~_pp5_dvd()
         ) |
         (_clinvar_clnsig("PLP") & all_star & _pp5_dvd())
