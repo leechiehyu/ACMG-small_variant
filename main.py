@@ -1,3 +1,4 @@
+import os
 import sys
 import time
 import json
@@ -53,6 +54,10 @@ def main():
 
     # 1. Load config
     try:
+        abs_config_path = os.path.abspath(args.config)
+        # get the directory of the config file to resolve relative paths in the config
+        CONFIG_DIR = os.path.dirname(abs_config_path)
+
         with open(args.config, "r", encoding="utf-8") as f:
             config = json.load(f)
 
@@ -66,6 +71,13 @@ def main():
     hotspot_path = db_paths.get("P_HOTSPOT_CLINICAL") if is_clinical else db_paths.get("P_HOTSPOT_SELECT")
 
     # 3. Load and annotate input data
+    ### resolve BA1 exception path
+    ba1_exc_raw = db_paths.get("BA1_EXCEPTION")
+    if ba1_exc_raw and not os.path.isabs(ba1_exc_raw):
+        ba1_exc_resolved = os.path.abspath(os.path.join(CONFIG_DIR, ba1_exc_raw))
+    else:
+        ba1_exc_resolved = ba1_exc_raw
+
     ## using data_loader.py
     try:
         logging.info(f"Loading data from: {args.input}")
@@ -76,7 +88,7 @@ def main():
             moi_db_path=db_paths.get("MOI"),
             gof_db_path=db_paths.get("GOF"),
             hotspot_path=hotspot_path,
-            variant_path=db_paths.get("VAR_EXP")
+            variant_path=ba1_exc_resolved
         )
 
     except Exception as e:
