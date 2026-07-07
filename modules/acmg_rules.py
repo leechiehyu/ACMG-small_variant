@@ -172,7 +172,7 @@ def _pvs1_nmd_escaping():
     return (pl.col("NMD") == "NMD_escaping_variant").fill_null(False)
 
 # --- PVS1 main rule --- #
-def check_pvs1(pvs1_loeuf_cutoff: float = 0.755):
+def check_pvs1(pvs1_loeuf_cutoff: float = 0.6):
     return (
         _pvs1_lof_csq() & 
         # _pvs1_loeuf(pvs1_loeuf_cutoff) & 
@@ -180,7 +180,7 @@ def check_pvs1(pvs1_loeuf_cutoff: float = 0.755):
         (_pvs1_loeuf(pvs1_loeuf_cutoff) | _pvs1_lof_gene())
     ).fill_null(False)
 
-def check_pvs1_strong(pvs1_loeuf_cutoff: float = 0.755):
+def check_pvs1_strong(pvs1_loeuf_cutoff: float = 0.6):
     """
     PVS1 downgraded to Strong when variant is NMD_escaping_variant.
     """
