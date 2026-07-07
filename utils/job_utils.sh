@@ -9,14 +9,15 @@
 
 # Function to be executed at the start of a job.
 start_job() {
+    : "${logfile:?logfile variable must be set before calling start_job}"
     exec > "$logfile" 2>&1
 
     # Check if the script is running in a Slurm environment.
-    if [ -n "$SLURM_JOB_ID" ]; then
+    if [ -n "${SLURM_JOB_ID:-}" ]; then
         echo "*-----------------------------*"
         echo "$(date '+%Y-%m-%d %H:%M:%S') Job started"
         echo "SLURM JOB ID = $SLURM_JOB_ID"
-        requested_mem_gb=$(( $SLURM_MEM_PER_NODE / 1024 ))
+        requested_mem_gb=$(( ${SLURM_MEM_PER_NODE:-0} / 1024 ))
         echo "Requested memory: ${requested_mem_gb} GB"
         echo -e "*-----------------------------*\n"
     else
@@ -29,9 +30,6 @@ start_job() {
 
 # Function to handle job cancellation.
 cancel_handler() {
-    echo "=================="
-    echo "Job was cancelled."
-    echo "=================="
     exit 130 
 }
 
